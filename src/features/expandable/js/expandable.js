@@ -23,7 +23,7 @@
    *
    *  @description Services for the expandable grid
    */
-  module.service('uiGridExpandableService', ['gridUtil', '$compile', function (gridUtil, $compile) {
+  module.service('uiGridExpandableService', ['gridUtil', '$compile', '$templateCache', function (gridUtil, $compile, $templateCache) {
     var service = {
       initializeGrid: function (grid) {
 
@@ -44,6 +44,25 @@
          *  </pre>
          */
         grid.options.enableExpandable = grid.options.enableExpandable !== false;
+
+        /**
+        *  @ngdoc object
+        *  @name expandableRowHeaderColDef
+        *  @propertyOf  ui.grid.expandable.api:GridOptions
+        *  @description Defines Row Headers for expandable rows, as well as the cellTemplate uesed for expandable cells.
+        *  Allows you to customize both.
+        *  @example
+        *  <pre>
+        *    $scope.gridOptions = {
+        *      expandableRowHeaderColDef: {
+        *        cellTemplate: "<div style= \"height:32px \" class=\"ui-grid-row-header-cell ui-grid-expandable-buttons-cell\"><div class=\"ui-grid-cell-contents\"><i ng-class=\"{ 'ui-grid-icon-plus-squared' : !row.isExpanded && row.entity.subGridOptions.data.length !== 0, 'ui-grid-icon-minus-squared' : row.isExpanded, 'ng-grid-cell': row.entity.subGridOptions.data.length == 0 }\" ng-click=\"grid.api.expandable.toggleRowExpansion(row.entity)\"></i></div></div>";
+        *    }
+        *  </pre>
+        */
+        grid.options.expandableRowHeaderColDef = grid.options.expandableRowHeaderColDef || {};
+        grid.options.expandableRowHeaderColDef.name = grid.options.expandableRowHeaderColDef.name || 'expandableButtons';
+        grid.options.expandableRowHeaderColDef.width = grid.options.expandableRowHeaderColDef.width || 40;
+        grid.options.expandableRowHeaderColDef.cellTemplate = grid.options.expandableRowHeaderColDef.cellTemplate || $templateCache.get('ui-grid/expandableRowHeader');
 
         /**
          *  @ngdoc object
@@ -281,20 +300,10 @@
         compile: function () {
           return {
             pre: function ($scope, $elm, $attrs, uiGridCtrl) {
-              if ( uiGridCtrl.grid.options.enableExpandableRowHeader !== false ) {
-                var expandableRowHeaderColDef = {
-                  name: 'expandableButtons',
-                  displayName: '',
-                  exporterSuppressExport: true,
-                  enableColumnResizing: false,
-                  enableColumnMenu: false,
-                  width: uiGridCtrl.grid.options.expandableRowHeaderWidth || 40
-                };
-                expandableRowHeaderColDef.cellTemplate = $templateCache.get('ui-grid/expandableRowHeader');
-                expandableRowHeaderColDef.headerCellTemplate = $templateCache.get('ui-grid/expandableTopRowHeader');
-                uiGridCtrl.grid.addRowHeaderColumn(expandableRowHeaderColDef);
-              }
               uiGridExpandableService.initializeGrid(uiGridCtrl.grid);
+              if ( uiGridCtrl.grid.options.enableExpandableRowHeader !== false ) {
+                uiGridCtrl.grid.addRowHeaderColumn(uiGridCtrl.grid.options.expandableRowHeaderColDef);
+              }
             },
             post: function ($scope, $elm, $attrs, uiGridCtrl) {
             }
